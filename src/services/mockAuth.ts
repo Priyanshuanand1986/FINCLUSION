@@ -8,9 +8,9 @@
 const DEMO_USER = {
   email: 'demo@budgettracker.com',
   password: 'demo1234',
-  name: 'Demo User',
+  name: '',
   id: 'demo-user-id',
-  profileCompleted: true,
+  profileCompleted: false,
   panId: 'DEMO1234Z',
   dateOfBirth: '1990-01-01'
 };

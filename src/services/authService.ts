@@ -1,5 +1,6 @@
 // Enhanced Authentication Service for Supabase Integration
 import { supabase } from './supabaseClient';
+import { mockAuth } from './mockAuth';
 
 export interface AuthUser {
   id: string;
@@ -168,6 +169,37 @@ class AuthService {
 
   // Login with Supabase
   async login(email: string, password: string): Promise<AuthResponse> {
+    // Check for demo login or mock mode
+    if (email === 'demo@budgettracker.com' && password === 'demo1234') {
+       console.log('Using mock auth for demo user');
+       try {
+         const response = mockAuth.login(email, password);
+         if (response.success) {
+            const user: AuthUser = {
+              id: response.user.id,
+              email: response.user.email,
+              name: response.user.name,
+              full_name: response.user.name
+            };
+            this.saveUserCredentials(user, response.token);
+            
+            // Also set the flags that handleAuthenticatedUser sets
+            localStorage.setItem('userToken', response.token);
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('userId', user.id);
+            localStorage.setItem('userEmail', user.email);
+
+            return {
+              success: true,
+              user,
+              token: response.token
+            };
+         }
+       } catch (e: any) {
+         return { success: false, error: e.message };
+       }
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -488,23 +520,38 @@ class AuthService {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) return null;
+      if (user) {
+        // Get user profile from our custom table
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
 
-      // Get user profile from our custom table
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+        return {
+          id: user.id,
+          email: user.email!,
+          name: profile?.full_name || profile?.name || user.user_metadata?.name,
+          full_name: profile?.full_name || profile?.name || user.user_metadata?.full_name,
+        };
+      }
 
-      return {
-        id: user.id,
-        email: user.email!,
-        name: profile?.full_name || profile?.name || user.user_metadata?.name,
-        full_name: profile?.full_name || profile?.name || user.user_metadata?.full_name,
-      };
+      // Fallback for mock mode
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        return JSON.parse(userData);
+      }
+      
+      return null;
     } catch (error) {
       console.error('Get current user error:', error);
+      
+      // Fallback for mock mode on error
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        return JSON.parse(userData);
+      }
+      
       return null;
     }
   }
@@ -513,10 +560,19 @@ class AuthService {
   async isLoggedIn(): Promise<boolean> {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      return !!session;
+      if (session) return true;
+      
+      // Fallback for mock mode
+      const token = localStorage.getItem('token');
+      const isAuthenticated = localStorage.getItem('isAuthenticated');
+      return !!(token && isAuthenticated === 'true');
     } catch (error) {
       console.error('Session check error:', error);
-      return false;
+      
+      // Fallback for mock mode on error
+      const token = localStorage.getItem('token');
+      const isAuthenticated = localStorage.getItem('isAuthenticated');
+      return !!(token && isAuthenticated === 'true');
     }
   }
 

@@ -96,7 +96,7 @@ export const authAPI = {
       throw new Error(error.message);
     }
   },
-  
+
   login: async (email: string, password: string): Promise<AuthResponse> => {
     if (USE_MOCK_AUTH) {
       // Use mock implementation
@@ -128,11 +128,11 @@ export const authAPI = {
       throw error;
     }
   },
-  
+
   getProfile: async () => {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) throw authError;
       if (!user) throw new Error('No user found');
 
@@ -164,9 +164,35 @@ export const authAPI = {
 // Profile Services
 export const profileAPI = {
   getProfile: async () => {
+    if (USE_MOCK_AUTH) {
+      // In mock mode, try to get profile from localStorage
+      const storedProfile = localStorage.getItem('userProfile');
+      if (storedProfile) {
+        return { success: true, data: JSON.parse(storedProfile) };
+      }
+
+      // Fallback to userData if userProfile not found (e.g. fresh login)
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        const user = JSON.parse(userData);
+        return {
+          success: true,
+          data: {
+            name: user.name || '',
+            email: user.email || '',
+            profileImage: null,
+            dateOfBirth: '',
+            panId: ''
+          }
+        };
+      }
+
+      return { success: false, error: 'No profile found' };
+    }
+
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) throw authError;
       if (!user) throw new Error('No user found');
 
@@ -183,26 +209,41 @@ export const profileAPI = {
       return { success: false, error: error.message };
     }
   },
-  
+
   updateProfile: async (profileData: any) => {
     if (USE_MOCK_AUTH) {
       // In mock mode, update profile in localStorage
-      const currentUser = localStorage.getItem('currentUser');
-      if (!currentUser) {
-        return { success: false, error: 'Not authenticated' };
+      // We check userData first to get the email if needed
+      const userDataStr = localStorage.getItem('userData');
+      const userProfileStr = localStorage.getItem('userProfile');
+
+      let baseProfile = {};
+      if (userProfileStr) {
+        baseProfile = JSON.parse(userProfileStr);
+      } else if (userDataStr) {
+        const userData = JSON.parse(userDataStr);
+        baseProfile = { email: userData.email };
       }
-      
-      const user = JSON.parse(currentUser);
-      const updatedProfile = { ...profileData, email: user.email };
-      
+
+      const updatedProfile = { ...baseProfile, ...profileData };
+
       localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+
+      // Also update userData name if present, to keep them in sync
+      if (userDataStr && profileData.name) {
+        const userData = JSON.parse(userDataStr);
+        userData.name = profileData.name;
+        userData.full_name = profileData.name;
+        localStorage.setItem('userData', JSON.stringify(userData));
+      }
+
       return { success: true, data: updatedProfile };
     }
-    
+
     // Use real implementation
     return realApi.profileAPI.updateProfile(profileData);
   },
-  
+
   uploadProfileImage: async (formData: FormData) => {
     if (USE_MOCK_AUTH) {
       // Mock image upload - just return a success message
@@ -216,26 +257,26 @@ export const profileAPI = {
           profile.profileImage = `https://ui-avatars.com/api/?name=${profile.name.replace(' ', '+')}&size=200&background=random`;
           localStorage.setItem('userProfile', JSON.stringify(profile));
         }
-        
-        return { 
-          success: true, 
-          data: { 
-            imageUrl: `https://ui-avatars.com/api/?name=User&size=200&background=random` 
-          } 
+
+        return {
+          success: true,
+          data: {
+            imageUrl: `https://ui-avatars.com/api/?name=User&size=200&background=random`
+          }
         };
       } catch (error) {
         return { success: false, error: 'Error uploading image' };
       }
     }
-    
+
     // Use real implementation
     return realApi.profileAPI.uploadProfileImage(formData);
   },
-  
+
   updatePanId: async (panId: string) => {
     return api.put('/profile/panid', { panId });
   },
-  
+
   updateDateOfBirth: async (dateOfBirth: string) => {
     return api.put('/profile/dob', { dateOfBirth });
   }
@@ -247,39 +288,39 @@ export const transactionAPI = {
     if (USE_MOCK_AUTH) {
       // In mock mode, get transactions from localStorage
       const storedTransactions = localStorage.getItem('transactions');
-      return { 
-        success: true, 
-        data: storedTransactions ? JSON.parse(storedTransactions) : [] 
+      return {
+        success: true,
+        data: storedTransactions ? JSON.parse(storedTransactions) : []
       };
     }
-    
+
     // Use real implementation
     return realApi.transactionAPI.getTransactions();
   },
-  
+
   createTransaction: async (transaction: Omit<Transaction, '_id'>) => {
     if (USE_MOCK_AUTH) {
       // In mock mode, add to localStorage
       const storedTransactions = localStorage.getItem('transactions');
       const transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
-      const newTransaction = { 
-        ...transaction, 
+      const newTransaction = {
+        ...transaction,
         _id: `trans-${Date.now()}`,
         createdAt: new Date().toISOString()
       };
-      
+
       localStorage.setItem('transactions', JSON.stringify([...transactions, newTransaction]));
       return { success: true, data: newTransaction };
     }
-    
+
     // Use real implementation
     return realApi.transactionAPI.createTransaction(transaction);
   },
-  
+
   updateTransaction: async (id: string, transaction: Partial<Transaction>) => {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) throw authError;
       if (!user) throw new Error('No user found');
 
@@ -298,11 +339,11 @@ export const transactionAPI = {
       return { success: false, error: error.message };
     }
   },
-  
+
   deleteTransaction: async (id: string) => {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) throw authError;
       if (!user) throw new Error('No user found');
 
@@ -319,24 +360,24 @@ export const transactionAPI = {
       return { success: false, error: error.message };
     }
   },
-  
+
   getMonthlyTransactions: async (year: number, month: number) => {
     if (USE_MOCK_AUTH) {
       // In mock mode, filter transactions by month from localStorage
       const storedTransactions = localStorage.getItem('transactions');
       if (!storedTransactions) return { success: true, data: { transactions: [], summary: { income: 0, expense: 0, balance: 0 } } };
-      
+
       const transactions = JSON.parse(storedTransactions);
-      
+
       // Filter by month/year
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0);
-      
+
       const filteredTransactions = transactions.filter((t: any) => {
         const date = new Date(t.date);
         return date >= startDate && date <= endDate;
       });
-      
+
       // Calculate totals
       const summary = filteredTransactions.reduce((acc: any, curr: any) => {
         if (curr.type === 'income') {
@@ -346,22 +387,22 @@ export const transactionAPI = {
         }
         return acc;
       }, { income: 0, expense: 0 });
-      
+
       summary.balance = summary.income - summary.expense;
-      
-      return { 
-        success: true, 
-        data: { 
+
+      return {
+        success: true,
+        data: {
           transactions: filteredTransactions,
           summary
-        } 
+        }
       };
     }
-    
+
     // Use real implementation
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) throw authError;
       if (!user) throw new Error('No user found');
 
@@ -401,26 +442,26 @@ export const transactionAPI = {
       return { success: false, error: error.message };
     }
   },
-  
+
   getTransactionsByCategory: async (startDate: string, endDate: string) => {
     if (USE_MOCK_AUTH) {
       // In mock mode, group transactions by category from localStorage
       const storedTransactions = localStorage.getItem('transactions');
       if (!storedTransactions) return { success: true, data: [] };
-      
+
       const transactions = JSON.parse(storedTransactions);
       const start = new Date(startDate);
       const end = new Date(endDate);
-      
+
       // Filter by date range
       const filteredTransactions = transactions.filter((t: any) => {
         const date = new Date(t.date);
         return date >= start && date <= end;
       });
-      
+
       // Group by category
       const categoriesMap: Record<string, any> = {};
-      
+
       filteredTransactions.forEach((t: any) => {
         if (!categoriesMap[t.category]) {
           categoriesMap[t.category] = {
@@ -430,16 +471,16 @@ export const transactionAPI = {
             transactions: []
           };
         }
-        
+
         categoriesMap[t.category].total += t.amount;
         categoriesMap[t.category].count += 1;
         categoriesMap[t.category].transactions.push(t);
       });
-      
+
       // Convert to array and sort by total
       const categoriesArray = Object.values(categoriesMap);
       categoriesArray.sort((a, b) => b.total - a.total);
-      
+
       return { success: true, data: categoriesArray };
     }
     return api.get(`/transactions/by-category?startDate=${startDate}&endDate=${endDate}`);
@@ -452,7 +493,7 @@ export const categoryAPI = {
     if (USE_MOCK_AUTH) {
       // In mock mode, get categories from localStorage
       const storedCategories = localStorage.getItem('categories');
-      
+
       // Default categories if none exist
       const defaultCategories = [
         { _id: 'cat-1', name: 'Food', type: 'expense', color: '#FF7D7D', icon: 'food' },
@@ -464,20 +505,20 @@ export const categoryAPI = {
         { _id: 'cat-7', name: 'Education', type: 'expense', color: '#06B6D4', icon: 'book' },
         { _id: 'cat-8', name: 'Income', type: 'income', color: '#00BF63', icon: 'cash' }
       ];
-      
+
       // If no categories stored, use defaults
       if (!storedCategories) {
         localStorage.setItem('categories', JSON.stringify(defaultCategories));
         return { success: true, data: defaultCategories };
       }
-      
+
       return { success: true, data: JSON.parse(storedCategories) };
     }
-    
+
     // Use real implementation
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) throw authError;
       if (!user) throw new Error('No user found');
 
@@ -493,36 +534,36 @@ export const categoryAPI = {
       return { success: false, error: error.message };
     }
   },
-  
+
   createCategory: async (category: Omit<Category, '_id'>) => {
     if (USE_MOCK_AUTH) {
       // In mock mode, add to localStorage
       const storedCategories = localStorage.getItem('categories');
       const categories = storedCategories ? JSON.parse(storedCategories) : [];
-      
+
       // Check if category already exists
-      const existingCategory = categories.find((c: any) => 
+      const existingCategory = categories.find((c: any) =>
         c.name.toLowerCase() === category.name.toLowerCase() && c.type === category.type
       );
-      
+
       if (existingCategory) {
         return { success: false, error: 'Category already exists' };
       }
-      
-      const newCategory = { 
-        ...category, 
+
+      const newCategory = {
+        ...category,
         _id: `cat-${Date.now()}`,
         createdAt: new Date().toISOString()
       };
-      
+
       localStorage.setItem('categories', JSON.stringify([...categories, newCategory]));
       return { success: true, data: newCategory };
     }
-    
+
     // Use real implementation
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) throw authError;
       if (!user) throw new Error('No user found');
 
@@ -556,27 +597,27 @@ export const categoryAPI = {
       return { success: false, error: error.message };
     }
   },
-  
+
   updateCategory: async (id: string, category: Partial<Category>) => {
     if (USE_MOCK_AUTH) {
       // In mock mode, update in localStorage
       const storedCategories = localStorage.getItem('categories');
       if (!storedCategories) return { success: false, error: 'No categories found' };
-      
+
       const categories = JSON.parse(storedCategories);
       const index = categories.findIndex((c: any) => c._id === id);
-      
+
       if (index === -1) return { success: false, error: 'Category not found' };
-      
+
       categories[index] = { ...categories[index], ...category };
       localStorage.setItem('categories', JSON.stringify(categories));
       return { success: true, data: categories[index] };
     }
-    
+
     // Use real implementation
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) throw authError;
       if (!user) throw new Error('No user found');
 
@@ -595,21 +636,21 @@ export const categoryAPI = {
       return { success: false, error: error.message };
     }
   },
-  
+
   deleteCategory: async (id: string) => {
     if (USE_MOCK_AUTH) {
       // In mock mode, delete from localStorage
       const storedCategories = localStorage.getItem('categories');
       if (!storedCategories) return { success: false, error: 'No categories found' };
-      
+
       const categories = JSON.parse(storedCategories);
       const categoryToDelete = categories.find((c: any) => c._id === id);
-      
+
       if (!categoryToDelete) return { success: false, error: 'Category not found' };
-      
+
       const filteredCategories = categories.filter((c: any) => c._id !== id);
       localStorage.setItem('categories', JSON.stringify(filteredCategories));
-      
+
       // Also remove this category from transactions
       const storedTransactions = localStorage.getItem('transactions');
       if (storedTransactions) {
@@ -617,14 +658,14 @@ export const categoryAPI = {
         const updatedTransactions = transactions.filter((t: any) => t.category !== categoryToDelete.name);
         localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
       }
-      
+
       return { success: true, data: {} };
     }
-    
+
     // Use real implementation
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) throw authError;
       if (!user) throw new Error('No user found');
 
@@ -660,36 +701,36 @@ export const categoryAPI = {
       return { success: false, error: error.message };
     }
   },
-  
+
   getCategoryStats: async (startDate: string, endDate: string) => {
     if (USE_MOCK_AUTH) {
       // In mock mode, calculate category stats from localStorage
       const storedCategories = localStorage.getItem('categories');
       const storedTransactions = localStorage.getItem('transactions');
-      
+
       if (!storedCategories) return { success: true, data: [] };
-      
+
       const categories = JSON.parse(storedCategories);
       const transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
-      
+
       const start = new Date(startDate);
       const end = new Date(endDate);
-      
+
       // Get transactions in date range
       const filteredTransactions = transactions.filter((t: any) => {
         const date = new Date(t.date);
         return date >= start && date <= end;
       });
-      
+
       // Calculate stats for each category
       const categoryStats = categories.map((category: any) => {
         const categoryTransactions = filteredTransactions.filter(
           (t: any) => t.category === category.name
         );
-        
+
         const total = categoryTransactions.reduce((sum: number, trans: any) => sum + trans.amount, 0);
         const percentageOfBudget = category.budget ? (total / category.budget) * 100 : null;
-        
+
         return {
           category: category.name,
           type: category.type,
@@ -701,7 +742,7 @@ export const categoryAPI = {
           transactionCount: categoryTransactions.length
         };
       });
-      
+
       return { success: true, data: categoryStats };
     }
     return api.get(`/categories/stats?startDate=${startDate}&endDate=${endDate}`);
