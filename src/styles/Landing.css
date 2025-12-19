@@ -1,308 +1,112 @@
-/* Landing Page Styles */
-.landing-main {
-  background-color: #000000;
-  color: #ffffff;
-}
+/* New Landing Page Styles */
 
-.landing-container {
-  display: flex;
-  width: 95%;
-  max-width: 1400px;
-  background-color: #0a0a0a;
-  border-radius: 16px;
-  border: 1px solid #333;
-  overflow: hidden;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-}
-
-/* Left side with feature list */
-.landing-left {
-  flex: 1.2;
-  padding: 5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  background: linear-gradient(145deg, #111111, #0a0a0a);
-  position: relative;
-}
-
-.landing-left::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 10%;
-  height: 80%;
-  width: 1px;
-  background: #333;
-}
-
-.landing-left h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 0.85rem;
-  font-family: 'League Spartan', sans-serif;
-  text-align: center;
-  position: relative;
-  background: linear-gradient(90deg, #00BF63, #4ade80, #00BF63);
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  animation: fadeInDown 0.8s ease forwards, gradientShift 8s ease infinite 0.8s;
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
+/* Blob Animation */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
   }
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0% center; }
-  50% { background-position: 100% center; }
-  100% { background-position: 0% center; }
+.animate-blob {
+  animation: blob 7s infinite;
 }
 
-.landing-left p {
-  font-size: 1.3rem;
-  margin-bottom: 1.75rem;
-  color: #cccccc;
-  line-height: 1.5;
-  text-align: center;
-  max-width: 80%;
-  animation: fadeIn 1s ease forwards;
-  animation-delay: 0.3s;
-  opacity: 0;
+.animation-delay-2000 {
+  animation-delay: 2s;
 }
 
-.features-container {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
-  margin-top: 2.5rem;
-  width: 100%;
-  max-width: 800px;
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 
-.feature {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex: 1;
+/* 3D Perspective for Hero Image */
+.perspective-1000 {
+  perspective: 1000px;
 }
 
-.feature:hover {
-  transform: translateY(-5px);
+.rotate-x-12 {
+  transform: rotateX(12deg);
 }
 
-.feature:hover .feature-icon {
-  transform: translateY(-5px);
-  box-shadow: 0 0 25px rgba(0, 191, 99, 0.3);
-  background-color: rgba(0, 191, 99, 0.15);
-  border-color: #00BF63;
+.rotate-x-0 {
+  transform: rotateX(0deg);
 }
 
-.feature-icon {
-  width: 75px;
-  height: 75px;
-  border-radius: 50%;
-  background-color: rgba(17, 17, 17, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
-  color: #00BF63;
-  border: 1px solid #333;
-  box-shadow: 0 0 20px rgba(0, 191, 99, 0.15);
-  transition: all 0.3s ease;
-  animation: fadeInDown 0.5s ease forwards;
-  opacity: 0;
+/* Custom Scrollbar for Landing Page */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-.feature-icon:hover {
-  transform: scale(1.15);
-  background-color: rgba(0, 191, 99, 0.15);
-  border-color: #00BF63;
-  box-shadow: 0 0 25px rgba(0, 191, 99, 0.3);
+::-webkit-scrollbar-track {
+  background: #000; 
+}
+ 
+::-webkit-scrollbar-thumb {
+  background: #333; 
+  border-radius: 4px;
 }
 
-.feature:nth-child(1) .feature-icon { animation-delay: 0.1s; }
-.feature:nth-child(2) .feature-icon { animation-delay: 0.2s; }
-.feature:nth-child(3) .feature-icon { animation-delay: 0.3s; }
-.feature:nth-child(4) .feature-icon { animation-delay: 0.4s; }
-
-.feature-title {
-  font-weight: 600;
-  font-size: 1.5rem;
-  margin: 0;
-  color: #ffffff;
-  letter-spacing: 0.02em;
-  animation: fadeInUp 0.5s ease forwards;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s ease;
+::-webkit-scrollbar-thumb:hover {
+  background: #00BF63; 
 }
 
-.feature:hover .feature-title {
-  color: #00BF63;
-}
-
-.feature:nth-child(1) .feature-title { animation-delay: 0.2s; }
-.feature:nth-child(2) .feature-title { animation-delay: 0.3s; }
-.feature:nth-child(3) .feature-title { animation-delay: 0.4s; }
-.feature:nth-child(4) .feature-title { animation-delay: 0.5s; }
-
-.feature-description {
-  color: #aaa;
-  font-size: 0.9rem;
-  line-height: 1.3;
-  margin-top: 0.5rem;
-}
-
-/* Right side with auth form */
-.landing-right {
-  flex: 0.8;
-  padding: 4rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background: linear-gradient(225deg, #111111, #0a0a0a);
-}
+/* Auth related styles moved to Login/Signup, but kept here for reusing classes if needed 
+   or we can rely on Tailwind mainly. 
+   The new Login.tsx and Signup.tsx import this file, so we should keep the shared styles.
+*/
 
 .auth-container {
   width: 100%;
   max-width: 450px;
   margin: 0 auto;
-  animation: fadeIn 0.8s ease forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.auth-tabs {
-  display: flex;
-  margin-bottom: 2.5rem;
-  border-bottom: 1px solid #333;
-  padding-bottom: 0.75rem;
-}
-
-.auth-tab {
-  flex: 1;
-  background: none;
-  border: none;
-  color: #888;
-  font-size: 1.1rem;
-  font-weight: 600;
-  padding: 0.75rem 0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.auth-tab.active {
-  color: #00BF63;
-}
-
-.auth-tab::after {
-  content: '';
-  position: absolute;
-  bottom: -0.5rem;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background-color: #00BF63;
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-}
-
-.auth-tab.active::after {
-  transform: scaleX(1);
-}
-
-.auth-form-container {
-  position: relative;
-  min-height: 300px;
-}
-
-.slide-enter {
-  opacity: 0;
-  transform: translateX(50px);
-}
-
-.slide-enter-active {
-  opacity: 1;
-  transform: translateX(0);
-  transition: all 0.3s ease;
-}
-
-.slide-exit {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.slide-exit-active {
-  opacity: 0;
-  transform: translateX(-50px);
-  transition: all 0.3s ease;
-}
-
-.auth-container h2 {
-  font-size: 2.2rem;
-  margin-bottom: 2rem;
-  color: #ffffff;
-  text-align: center;
-  font-family: 'League Spartan', sans-serif;
 }
 
 .auth-error {
-  background-color: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.5);
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   color: #ef4444;
-  padding: 0.75rem;
+  padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .form-group {
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-size: 1rem;
-  color: #cccccc;
+  font-size: 0.95rem;
+  color: #ccc;
 }
 
 .form-group input {
   width: 100%;
   padding: 12px 16px;
-  background-color: #1a1a1a;
+  background-color: #111;
   border: 1px solid #333;
   border-radius: 8px;
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: all 0.2s ease;
 }
 
 .form-group input:focus {
   outline: none;
   border-color: #00BF63;
-  box-shadow: 0 0 0 2px rgba(0, 191, 99, 0.2);
+  box-shadow: 0 0 0 2px rgba(0, 191, 99, 0.1);
 }
 
 .auth-button {
@@ -312,131 +116,46 @@
   color: #000;
   border: none;
   border-radius: 8px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 .auth-button:hover {
   background-color: #00a857;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
-.auth-toggle {
-  text-align: center;
-  margin-top: 2rem;
-  color: #888;
-  font-size: 1rem;
+.auth-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.toggle-button {
-  background: none;
-  border: none;
-  color: #00BF63;
-  font-weight: 600;
-  cursor: pointer;
-  margin-left: 0.5rem;
-  font-size: 1rem;
-}
-
-.toggle-button:hover {
-  text-decoration: underline;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-  .landing-container {
-    width: 95%;
-    max-width: 1200px;
-  }
-  
-  .features-container {
-    max-width: 700px;
-    gap: 2rem;
-  }
-}
-
-@media (max-width: 992px) {
-  .landing-container {
-    flex-direction: column;
-    width: 95%;
-  }
-  
-  .landing-left::after {
-    display: none;
-  }
-  
-  .landing-left {
-    padding: 3rem 2rem;
-  }
-  
-  .landing-right {
-    padding: 3rem 2rem;
-  }
-  
-  .features-container {
-    max-width: 600px;
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .landing-container {
-    width: 100%;
-    border-radius: 0;
-  }
-  
-  .landing-left, .landing-right {
-    padding: 2rem 1.5rem;
-  }
-  
-  .features-container {
-    flex-wrap: wrap;
-    gap: 2rem;
-  }
-  
-  .feature {
-    flex: 0 0 calc(50% - 1rem);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Demo credentials section */
+/* Demo functionality styles */
 .demo-access {
-  margin-top: 2.5rem;
-  padding-top: 1.75rem;
-  border-top: 1px solid #333;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #222;
   text-align: center;
-  animation: fadeIn 1s ease forwards;
-  animation-delay: 0.5s;
-  opacity: 0;
 }
 
 .demo-text {
-  font-size: 1rem;
-  color: #888;
-  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1rem;
 }
 
 .demo-credentials {
-  background-color: rgba(26, 26, 26, 0.6);
-  border: 1px solid #333;
-  border-radius: 8px;
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 6px;
   padding: 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   font-family: monospace;
+  font-size: 0.85rem;
 }
 
 .demo-credentials > div {
@@ -450,14 +169,11 @@
 }
 
 .credential-label {
-  color: #888;
-  font-size: 0.95rem;
+  color: #666;
 }
 
 .credential-value {
   color: #00BF63;
-  font-weight: 600;
-  font-size: 0.95rem;
 }
 
 .demo-buttons {
@@ -470,29 +186,28 @@
 .demo-login-button {
   padding: 0.6rem 1rem;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .demo-fill-button {
-  background-color: #333;
-  color: #fff;
-  border: 1px solid #444;
+  background-color: #222;
+  color: #ccc;
+  border: 1px solid #333;
 }
 
 .demo-fill-button:hover {
-  background-color: #444;
+  background-color: #333;
 }
 
 .demo-login-button {
-  background-color: rgba(0, 191, 99, 0.15);
+  background-color: rgba(0, 191, 99, 0.1);
   color: #00BF63;
-  border: 1px solid rgba(0, 191, 99, 0.3);
+  border: 1px solid rgba(0, 191, 99, 0.2);
 }
 
 .demo-login-button:hover {
-  background-color: rgba(0, 191, 99, 0.25);
-  transform: translateY(-2px);
-} 
+  background-color: rgba(0, 191, 99, 0.2);
+}

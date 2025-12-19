@@ -2,7 +2,7 @@
   "name": "finclusion",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://manju-bharati-mahto.github.io/FINCLUSION/",
+  "homepage": ".",
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
     "@testing-library/jest-dom": "^5.16.5",

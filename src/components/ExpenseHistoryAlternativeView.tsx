@@ -64,31 +64,31 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
-  const [expandedMonths, setExpandedMonths] = useState<{[key: number]: boolean}>({});
+  const [expandedMonths, setExpandedMonths] = useState<{ [key: number]: boolean }>({});
   // Add pagination state for transaction details
   const [currentPage, setCurrentPage] = useState(1);
   const [transactionsPerPage] = useState(5);
   const contentRef = useRef<HTMLDivElement>(null);
-  
+
   // Reset pagination when changing category or month
   useEffect(() => {
     if (selectedCategory !== null && selectedMonth !== null) {
       setCurrentPage(1);
     }
   }, [selectedCategory, selectedMonth]);
-  
+
   useEffect(() => {
     if (!isOpen || !contentRef.current) return;
-    
+
     // Store ref value in a variable to use in cleanup
     const currentContentRef = contentRef.current;
-    
+
     const handleScroll = () => {
       if (currentContentRef) {
         setShowScrollTop(currentContentRef.scrollTop > 300);
       }
     };
-    
+
     currentContentRef.addEventListener('scroll', handleScroll);
     return () => {
       if (currentContentRef) {
@@ -96,11 +96,11 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
       }
     };
   }, [isOpen]);
-  
+
   const scrollToTop = () => {
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   // Reset selections when popup is opened or closed
   useEffect(() => {
     if (isOpen) {
@@ -112,7 +112,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
       setExpandedMonths({});
     }
   }, [isOpen]);
-  
+
   // Effect to add pulse animation to the latest data point
   useEffect(() => {
     if (activeTab === 'trends') {
@@ -124,7 +124,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
             // Get the last point (most recent month)
             const lastPointIndex = chart.data.labels.length - 1;
             const datasetMeta = chart.getDatasetMeta(0);
-            
+
             if (datasetMeta.data[lastPointIndex]) {
               // Highlight the last point with a glowing effect and larger radius
               datasetMeta.data[lastPointIndex].options = {
@@ -142,43 +142,43 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
       }, 600);
     }
   }, [activeTab]);
-  
+
   if (!isOpen) return null;
-  
+
   // Process monthly data
   const sixMonthsData = [...monthlyData];
-  
+
   // Process category amounts
   const getCategoryAmounts = (monthIndex: number): TransactionDetails[] => {
     const categoryData = getCategorySpending(monthIndex);
     const monthTotal = sixMonthsData[monthIndex].total;
-    
+
     return categoryData.map(item => ({
       category: item.category,
       amount: (item.value / 100) * monthTotal,
       count: Math.max(1, Math.round(item.value / 10))
     }));
   };
-  
+
   // Get transactions for a specific category and month
   const getCategoryTransactions = (monthIndex: number, category: string) => {
-    return transactions.filter(t => 
+    return transactions.filter(t =>
       t.category.toLowerCase() === category.toLowerCase() &&
       new Date(t.date).getMonth() === new Date().getMonth() - (5 - monthIndex)
     );
   };
-  
+
   // Calculate month-to-month percentage changes
   const getMonthlyChanges = () => {
     const changes = sixMonthsData.map((month, index) => {
       if (index === 0) return { value: 0, isIncrease: false };
-      
+
       const prevMonth = sixMonthsData[index - 1].total;
       const currentMonth = month.total;
-      const percentChange = prevMonth > 0 
-        ? ((currentMonth - prevMonth) / prevMonth) * 100 
+      const percentChange = prevMonth > 0
+        ? ((currentMonth - prevMonth) / prevMonth) * 100
         : 0;
-      
+
       return {
         value: Math.abs(percentChange).toFixed(1),
         isIncrease: percentChange >= 0
@@ -186,7 +186,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
     });
     return changes;
   };
-  
+
   // Generate trend data for line chart
   const getTrendData = () => {
     const ctx = document.createElement('canvas').getContext('2d');
@@ -197,9 +197,9 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
       gradient.addColorStop(0.6, 'rgba(0, 191, 99, 0.15)');
       gradient.addColorStop(1, 'rgba(0, 191, 99, 0.02)');
     }
-    
+
     const monthlyChanges = getMonthlyChanges();
-    
+
     return {
       labels: sixMonthsData.map(data => data.month),
       datasets: [
@@ -225,7 +225,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
       ]
     };
   };
-  
+
   // Chart options for trend chart
   const trendChartOptions = {
     responsive: true,
@@ -255,34 +255,34 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
           size: 13
         },
         callbacks: {
-          title: function(context: any) {
+          title: function (context: any) {
             return context[0].label;
           },
-          label: function(context: any) {
+          label: function (context: any) {
             const totalAmount = `₹${formatAmount(context.parsed.y)}`;
             return totalAmount;
           },
-          afterLabel: function(context: any) {
+          afterLabel: function (context: any) {
             const datasetIndex = context.datasetIndex;
             const index = context.dataIndex;
             const dataset = context.chart.data.datasets[datasetIndex];
-            
+
             if (index === 0 || !dataset.monthlyChanges) return '';
-            
+
             const change = dataset.monthlyChanges[index];
-            const changeText = change.isIncrease 
-              ? `↑ ${change.value}% from previous month` 
+            const changeText = change.isIncrease
+              ? `↑ ${change.value}% from previous month`
               : `↓ ${change.value}% from previous month`;
-              
+
             return changeText;
           },
-          labelTextColor: function(context: any) {
+          labelTextColor: function (context: any) {
             const datasetIndex = context.datasetIndex;
             const index = context.dataIndex;
             const dataset = context.chart.data.datasets[datasetIndex];
-            
+
             if (index === 0 || !dataset.monthlyChanges) return '#fff';
-            
+
             return dataset.monthlyChanges[index].isIncrease ? '#f87171' : '#4ade80';
           }
         }
@@ -346,7 +346,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
             family: "'Inter', sans-serif"
           },
           padding: 10,
-          callback: function(value: any) {
+          callback: function (value: any) {
             return '₹' + formatAmount(value);
           },
           count: 5
@@ -355,11 +355,11 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
       }
     }
   };
-  
+
   // Category distribution for selected month
   const getCategoryDistribution = (monthIndex: number) => {
     const categories = getCategorySpending(monthIndex);
-    
+
     // Format for horizontal bar chart
     return {
       labels: categories.map(cat => cat.category),
@@ -373,7 +373,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
       ]
     };
   };
-  
+
   // Chart options for horizontal bar chart
   const horizontalBarOptions = {
     indexAxis: 'y' as const,
@@ -392,7 +392,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
         padding: 10,
         displayColors: true,
         callbacks: {
-          label: function(context: any) {
+          label: function (context: any) {
             return `${context.parsed.x}%`;
           }
         }
@@ -406,7 +406,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
         },
         ticks: {
           color: '#888',
-          callback: function(value: any) {
+          callback: function (value: any) {
             return value + '%';
           }
         },
@@ -425,7 +425,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
       }
     }
   };
-  
+
   // Render transaction details
   const renderTransactionDetails = () => {
     if (selectedMonth === null || selectedCategory === null) {
@@ -438,8 +438,8 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
           </div>
           <h3 className="text-xl font-medium text-white mb-2">No Category Selected</h3>
           <p className="text-gray-400">Select a category from the Categories tab to view detailed transactions.</p>
-          <button 
-            onClick={() => setActiveTab('categories')} 
+          <button
+            onClick={() => setActiveTab('categories')}
             className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition-colors"
           >
             Go to Categories
@@ -447,9 +447,9 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
         </div>
       );
     }
-    
+
     const allTransactions = getCategoryTransactions(selectedMonth, selectedCategory);
-    
+
     if (allTransactions.length === 0) {
       return (
         <div className="bg-neutral-900 rounded-lg p-6 mt-4">
@@ -457,7 +457,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
             {selectedCategory} in {sixMonthsData[selectedMonth].month}
           </h3>
           <p className="text-gray-400 mb-6">No transactions recorded for this category this month.</p>
-          
+
           <div className="border border-dashed border-gray-700 rounded-lg p-12 text-center">
             <div className="w-16 h-16 mx-auto mb-4 text-gray-600">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -469,25 +469,26 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
         </div>
       );
     }
-    
+
     const totalAmount = allTransactions.reduce((sum, t) => sum + t.amount, 0);
     const avgTransaction = totalAmount / allTransactions.length;
-    
+
     // Calculate pagination
     const indexOfLastTransaction = currentPage * transactionsPerPage;
     const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
     const currentTransactions = allTransactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
     const totalPages = Math.ceil(allTransactions.length / transactionsPerPage);
-    
+
     // Pagination control handlers
-    const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-    const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
-    const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
-    
+    // Helpers removed as JSX uses inline state setters directly to avoid lint warnings
+    // const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+    // const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    // const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+
     return (
       <div className="bg-neutral-900 rounded-lg p-6 mt-4">
         <div className="flex items-center mb-2">
-          <button 
+          <button
             onClick={() => setActiveTab('categories')}
             className="text-gray-400 hover:text-white mr-2 flex items-center"
           >
@@ -511,7 +512,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
             </div>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full min-w-full divide-y divide-gray-800">
             <thead>
@@ -534,7 +535,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
             </tbody>
           </table>
         </div>
-        
+
         {/* Transaction visualization bar chart */}
         <div className="mt-6 bg-neutral-800 p-4 rounded-lg">
           <div className="text-gray-400 text-xs uppercase tracking-wider mb-3">Transaction Distribution</div>
@@ -546,7 +547,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                   <span className="text-emerald-500 text-sm">₹{formatAmount(t.amount)}</span>
                 </div>
                 <div className="w-full h-1.5 bg-neutral-900 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-emerald-500 rounded-full"
                     style={{
                       width: `${(t.amount / Math.max(...allTransactions.map(tx => tx.amount))) * 100}%`
@@ -597,7 +598,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              
+
               {/* Page number buttons - show limited number of pages for better UI */}
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                 // For more than 5 pages, show first, last, and pages around current
@@ -615,23 +616,22 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                   if (i === 0) pageNum = 1;
                   if (i === 4) pageNum = totalPages;
                 }
-                
+
                 return (
                   <button
                     key={i}
                     type="button"
-                    className={`w-8 h-8 rounded-full text-sm font-medium ${
-                      currentPage === pageNum
+                    className={`w-8 h-8 rounded-full text-sm font-medium ${currentPage === pageNum
                         ? 'bg-emerald-600 text-white'
                         : 'text-gray-400 hover:bg-neutral-700'
-                    }`}
+                      }`}
                     onClick={() => setCurrentPage(pageNum)}
                   >
                     {pageNum}
                   </button>
                 );
               })}
-              
+
               <button
                 type="button"
                 className={`p-2 rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neutral-700'}`}
@@ -649,14 +649,14 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
       </div>
     );
   };
-  
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="w-11/12 h-[90vh] max-w-7xl bg-black rounded-2xl shadow-2xl flex flex-col border border-neutral-800 relative">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-neutral-800">
           <h2 className="text-2xl font-bold text-white">6-Month Expense History</h2>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-neutral-800 rounded-full transition-colors focus:outline-none"
             aria-label="Close"
@@ -666,35 +666,32 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
             </svg>
           </button>
         </div>
-        
+
         {/* Tabs */}
         <div className="flex border-b border-neutral-800">
-          <button 
-            className={`px-6 py-4 font-medium transition-colors focus:outline-none ${
-              activeTab === 'trends' 
-                ? 'text-emerald-500 border-b-2 border-emerald-500' 
+          <button
+            className={`px-6 py-4 font-medium transition-colors focus:outline-none ${activeTab === 'trends'
+                ? 'text-emerald-500 border-b-2 border-emerald-500'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
             onClick={() => setActiveTab('trends')}
           >
             Spending Trends
           </button>
-          <button 
-            className={`px-6 py-4 font-medium transition-colors focus:outline-none ${
-              activeTab === 'categories' 
-                ? 'text-emerald-500 border-b-2 border-emerald-500' 
+          <button
+            className={`px-6 py-4 font-medium transition-colors focus:outline-none ${activeTab === 'categories'
+                ? 'text-emerald-500 border-b-2 border-emerald-500'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
             onClick={() => setActiveTab('categories')}
           >
             Category Breakdown
           </button>
-          <button 
-            className={`px-6 py-4 font-medium transition-colors focus:outline-none flex items-center ${
-              activeTab === 'details' 
-                ? 'text-emerald-500 border-b-2 border-emerald-500' 
+          <button
+            className={`px-6 py-4 font-medium transition-colors focus:outline-none flex items-center ${activeTab === 'details'
+                ? 'text-emerald-500 border-b-2 border-emerald-500'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
             onClick={() => setActiveTab('details')}
           >
             Transaction Details
@@ -703,15 +700,15 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
             )}
           </button>
         </div>
-        
+
         {/* Content area */}
-        <div 
+        <div
           ref={contentRef}
           className="flex-1 overflow-y-auto p-6 custom-scrollbar"
         >
           {/* Scroll to top button */}
           {showScrollTop && (
-            <button 
+            <button
               onClick={scrollToTop}
               className="fixed bottom-6 right-6 z-10 p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg transition-colors focus:outline-none"
               aria-label="Scroll to top"
@@ -721,53 +718,52 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
               </svg>
             </button>
           )}
-          
+
           {/* Trends View */}
           {activeTab === 'trends' && (
             <div>
               <div className="bg-neutral-900 rounded-lg p-6 mb-6">                  <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-6">
-                  <div>
-                    <h3 className="text-xl font-medium text-emerald-500 mb-1">6-Month Overview</h3>
-                    <p className="text-gray-400">
-                      Your spending patterns from {sixMonthsData[0].month} to {sixMonthsData[sixMonthsData.length-1].month}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-2 italic">
-                      Click on any data point to view detailed breakdown for that month
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <div className="text-3xl font-bold text-white">
-                      ₹{formatAmount(sixMonthsData.reduce((acc, month) => acc + month.total, 0))}
-                    </div>
-                    <div className="text-sm text-gray-400">Total Spend</div>
-                    
-                    {/* Trend indicator */}
-                    {sixMonthsData.length > 1 && (
-                      <div className={`text-xs flex items-center mt-2 ${
-                        sixMonthsData[sixMonthsData.length-1].total > sixMonthsData[sixMonthsData.length-2].total
-                          ? 'text-red-400'
-                          : 'text-emerald-400'
-                      }`}>
-                        {sixMonthsData[sixMonthsData.length-1].total > sixMonthsData[sixMonthsData.length-2].total ? (
-                          <>
-                            <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                            Trending up from last month
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
-                            </svg>
-                            Trending down from last month
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                <div>
+                  <h3 className="text-xl font-medium text-emerald-500 mb-1">6-Month Overview</h3>
+                  <p className="text-gray-400">
+                    Your spending patterns from {sixMonthsData[0].month} to {sixMonthsData[sixMonthsData.length - 1].month}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2 italic">
+                    Click on any data point to view detailed breakdown for that month
+                  </p>
                 </div>
-                
+                <div className="flex flex-col items-end">
+                  <div className="text-3xl font-bold text-white">
+                    ₹{formatAmount(sixMonthsData.reduce((acc, month) => acc + month.total, 0))}
+                  </div>
+                  <div className="text-sm text-gray-400">Total Spend</div>
+
+                  {/* Trend indicator */}
+                  {sixMonthsData.length > 1 && (
+                    <div className={`text-xs flex items-center mt-2 ${sixMonthsData[sixMonthsData.length - 1].total > sixMonthsData[sixMonthsData.length - 2].total
+                        ? 'text-red-400'
+                        : 'text-emerald-400'
+                      }`}>
+                      {sixMonthsData[sixMonthsData.length - 1].total > sixMonthsData[sixMonthsData.length - 2].total ? (
+                        <>
+                          <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                          </svg>
+                          Trending up from last month
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
+                          </svg>
+                          Trending down from last month
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
                 <div className="h-72 mt-6 area-chart-container chart-wrapper relative">
                   <div className="absolute top-2 right-2 flex gap-1 opacity-60 hover:opacity-100 transition-opacity">
                     <div className="text-xs bg-black bg-opacity-40 px-2 py-1 rounded-md text-gray-300 flex items-center">
@@ -775,8 +771,8 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                       Monthly expense trend
                     </div>
                   </div>
-                  <Line 
-                    data={getTrendData()} 
+                  <Line
+                    data={getTrendData()}
                     options={trendChartOptions as any}
                     // @ts-ignore - Chart.js types don't match react-chartjs-2 for onClick
                     getElementAtEvent={(elements, event) => {
@@ -792,7 +788,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
                 <div className="bg-neutral-900 rounded-lg p-5 hover:bg-neutral-800 transition-all hover:shadow-lg hover:scale-105 duration-300">
                   <div className="text-sm text-gray-400 mb-1">Monthly Average</div>
@@ -837,7 +833,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {sixMonthsData.map((month, index) => (
                   <div key={index} className="bg-neutral-900 rounded-lg p-5">
@@ -847,21 +843,21 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                         <div className="text-xl font-bold text-emerald-500">₹{formatAmount(month.total)}</div>
                         {index > 0 && (
                           <div className="text-xs">
-                            <span 
+                            <span
                               className={
-                                month.total >= sixMonthsData[index-1].total 
-                                  ? 'text-red-400' 
+                                month.total >= sixMonthsData[index - 1].total
+                                  ? 'text-red-400'
                                   : 'text-emerald-400'
                               }
                             >
-                              {(((month.total / sixMonthsData[index-1].total) - 1) * 100).toFixed(1)}%
-                              {month.total >= sixMonthsData[index-1].total ? ' ↑' : ' ↓'}
+                              {(((month.total / sixMonthsData[index - 1].total) - 1) * 100).toFixed(1)}%
+                              {month.total >= sixMonthsData[index - 1].total ? ' ↑' : ' ↓'}
                             </span>
                           </div>
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-3 mt-3">
                       {getCategorySpending(index)
                         .slice(0, expandedMonths[index] ? undefined : 3)
@@ -869,7 +865,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                           <div key={i} className="flex flex-col">
                             <div className="flex items-center justify-between mb-1">
                               <div className="flex items-center">
-                                <div 
+                                <div
                                   className="w-3 h-3 rounded-sm mr-2"
                                   style={{ backgroundColor: category.color }}
                                 />
@@ -880,17 +876,17 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                             {/* Mini horizontal bar for each category */}
                             <div className="w-full h-2.5 bg-neutral-800 rounded-full overflow-hidden">
                               <div
-                                className="h-full rounded-full transition-all duration-500" 
-                                style={{ 
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
                                   width: `${category.value}%`,
                                   backgroundColor: category.color
                                 }}
                               />
                             </div>
                           </div>
-                      ))}
+                        ))}
                       {getCategorySpending(index).length > 3 && !expandedMonths[index] && (
-                        <div 
+                        <div
                           className="text-xs text-gray-500 text-center mt-2 py-1.5 hover:bg-neutral-800 rounded cursor-pointer transition-colors"
                           onClick={() => setExpandedMonths(prev => ({ ...prev, [index]: true }))}
                         >
@@ -898,20 +894,20 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                         </div>
                       )}
                       {expandedMonths[index] && (
-                        <div 
+                        <div
                           className="text-xs text-gray-500 text-center mt-2 py-1.5 hover:bg-neutral-800 rounded cursor-pointer transition-colors"
                           onClick={() => setExpandedMonths(prev => ({ ...prev, [index]: false }))}
                         >
                           Show less
                         </div>
                       )}
-                      
+
                       {/* Stacked mini bar visualization (showing each category's proportion) */}
                       <div className="mt-4 pt-3 border-t border-neutral-800">
                         <div className="text-xs text-gray-500 mb-2">Category Breakdown</div>
                         <div className="flex h-3 w-full rounded-md overflow-hidden stacked-bar-container">
                           {getCategorySpending(index).map((cat, i) => (
-                            <div 
+                            <div
                               key={i}
                               style={{
                                 backgroundColor: cat.color,
@@ -929,7 +925,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
               </div>
             </div>
           )}
-          
+
           {/* Categories View */}
           {activeTab === 'categories' && (
             <div>
@@ -940,17 +936,15 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                     <button
                       key={index}
                       type="button"
-                      className={`px-4 py-2 text-sm font-medium ${
-                        selectedMonth === index
+                      className={`px-4 py-2 text-sm font-medium ${selectedMonth === index
                           ? 'bg-emerald-600 text-white'
                           : 'bg-neutral-900 text-gray-300 hover:bg-neutral-800'
-                      } ${
-                        index === 0 
-                          ? 'rounded-l-md' 
-                          : index === sixMonthsData.length - 1 
-                            ? 'rounded-r-md' 
+                        } ${index === 0
+                          ? 'rounded-l-md'
+                          : index === sixMonthsData.length - 1
+                            ? 'rounded-r-md'
                             : ''
-                      } border border-neutral-700`}
+                        } border border-neutral-700`}
                       onClick={() => setSelectedMonth(index)}
                     >
                       {month.month}
@@ -958,7 +952,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                   ))}
                 </div>
               </div>
-              
+
               {selectedMonth !== null ? (
                 <div className="bg-neutral-900 rounded-lg p-6">
                   <div className="flex justify-between items-center mb-6">
@@ -969,18 +963,18 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                       ₹{formatAmount(sixMonthsData[selectedMonth].total)}
                     </div>
                   </div>
-                  
+
                   {/* Mini horizontal bar chart visualization */}
                   <div className="mb-6">
                     <h4 className="text-gray-400 text-sm mb-2">Category Distribution by Percentage</h4>
                     <div className="h-64 bar-chart-container bg-neutral-800 p-3 rounded-lg">
-                      <Bar 
-                        data={getCategoryDistribution(selectedMonth)} 
-                        options={horizontalBarOptions as any} 
+                      <Bar
+                        data={getCategoryDistribution(selectedMonth)}
+                        options={horizontalBarOptions as any}
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {getCategorySpending(selectedMonth).map((category, index) => {
                       const amount = (category.value / 100) * sixMonthsData[selectedMonth].total;
@@ -988,15 +982,14 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                       const categoryDetails = getCategoryAmounts(selectedMonth).find(
                         cat => cat.category === category.category
                       );
-                      
+
                       return (
-                        <div 
+                        <div
                           key={index}
-                          className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                            selectedCategory === category.category 
-                              ? 'bg-neutral-800 border-l-4 border-emerald-500' 
+                          className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedCategory === category.category
+                              ? 'bg-neutral-800 border-l-4 border-emerald-500'
                               : 'hover:bg-neutral-800'
-                          }`}
+                            }`}
                           onClick={() => {
                             setSelectedCategory(category.category);
                             // selectedMonth is already set from the month selection above
@@ -1005,7 +998,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                         >
                           <div className="flex justify-between items-center mb-2">
                             <div className="flex items-center">
-                              <div 
+                              <div
                                 className="w-4 h-4 rounded-sm mr-3"
                                 style={{ backgroundColor: category.color }}
                               />
@@ -1013,17 +1006,17 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
                             </div>
                             <div className="text-emerald-500 font-medium">₹{formatAmount(amount)}</div>
                           </div>
-                          
+
                           <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
                             <div
-                              className="h-full rounded-full transition-all duration-500" 
-                              style={{ 
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{
                                 width: `${category.value}%`,
                                 backgroundColor: category.color
                               }}
                             />
                           </div>
-                          
+
                           <div className="flex justify-between mt-2 text-xs">
                             <div className="text-gray-400">
                               ~{categoryDetails ? categoryDetails.count : Math.max(1, Math.round(category.value / 10))} transactions
@@ -1048,7 +1041,7 @@ const ExpenseHistoryAlternativeView: React.FC<ExpenseHistoryPopupProps> = ({
               )}
             </div>
           )}
-          
+
           {/* Transaction Details View */}
           {activeTab === 'details' && renderTransactionDetails()}
         </div>

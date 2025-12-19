@@ -4,6 +4,8 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import Dashboard from './pages/Dashboard';
 import Landing from './pages/Landing';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import EmailConfirmation from './components/EmailConfirmation';
 import reportWebVitals from './reportWebVitals';
 
@@ -15,6 +17,8 @@ root.render(
     <HashRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/confirm-email" element={<EmailConfirmation />} />
         <Route path="*" element={<Navigate to="/" replace />} />
