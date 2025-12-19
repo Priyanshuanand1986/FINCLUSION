@@ -2,7 +2,7 @@
 
 A modern personal finance tracker application built with React, TypeScript, and Supabase for comprehensive financial management.
 
-🔗 **Live Application**: https://manju-bharati-mahto.github.io/FINCLUSION/
+🔗 **Live Application**: [https://manju-bharati-mahto.github.io/FINCLUSION/](https://the-finclusion.netlify.app/)
 
 ## Overview
 
